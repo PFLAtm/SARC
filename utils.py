@@ -153,7 +153,8 @@ def load_config():
         config = json.load(json_file)
         email = config['username']
         password = config['password']
-    return config, email, password
+        authString = config['authstring']
+    return config, email, password, authstring
 
 
 # Check if valid token exists, else make a new one
@@ -239,7 +240,7 @@ def generate_protocol_table(address):
 
 
 # Login and encryption + compression
-def login(address, protocol_version, debug, access_token, uuid, user_name):
+def login(address, protocol_version, debug, access_token, uuid, user_name, auth_string):
     connection = TCPConnection(address, debug)
 
     # Handshake with Next state set to 2 (login)
@@ -285,7 +286,7 @@ def login(address, protocol_version, debug, access_token, uuid, user_name):
                 server_id = format(int.from_bytes(verify_hash.digest(), byteorder='big', signed=True), 'x')
                 res = requests.post('https://sessionserver.mojang.com/session/minecraft/join',
                                     data=json.dumps({'accessToken': access_token, 'selectedProfile': uuid,
-                                                     'serverId': server_id}),
+                                                     'serverId': server_id, 'authString':auth_string}),
                                     headers={'content-type': 'application/json'})
                 print('Client session auth', res.status_code)
 

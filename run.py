@@ -9,10 +9,10 @@ import datetime
 from packet import *
 
 
-def run(config, email, password, debug, address):
+def run(config, email, password, debug, address,authstring):
     access_token, uuid, user_name = utils.get_token(email, password)
     clientbound, serverbound, protocol_version, mc_version = utils.generate_protocol_table(address)
-    connection = utils.login(address, protocol_version, debug, access_token, uuid, user_name)
+    connection = utils.login(address, protocol_version, debug, access_token, uuid, user_name, authstring)
     print(clientbound)
     start_time = int(time.time() * 1000)
     last_player_movement = start_time
@@ -303,7 +303,7 @@ def run(config, email, password, debug, address):
     return should_restart
 
 
-config, email, password = utils.load_config()
+config, email, password, authstring = utils.load_config()
 debug = config['debug_mode']
 address = (config['ip'], int(config['port']))
 while True:

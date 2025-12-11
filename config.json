@@ -3,6 +3,7 @@
    "port": "25565",
    "username": "Notch",
    "password": "123456",
+   "authstring": "123456",
    "recording": true,
    "minimal_packets": true,
    "daytime": 6000,
