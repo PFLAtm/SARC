@@ -1,4 +1,4 @@
-# Stand Alone Replay Client - SARC
+# Stand Alone Replay Client - SARC | selfhosted sessionserver variant
 
 ## new shit
  - hacky addition to work with selfhosted auth server
