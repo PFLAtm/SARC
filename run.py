@@ -9,8 +9,8 @@ import datetime
 from packet import *
 
 
-def run(config, email, password, debug, address,authstring):
-    access_token, uuid, user_name = utils.get_token(email, password)
+def run(config, email, uuid, debug, address,authstring):
+    access_token, uuid, user_name = utils.get_token(email, uuid)
     clientbound, serverbound, protocol_version, mc_version = utils.generate_protocol_table(address)
     connection = utils.login(address, protocol_version, debug, access_token, uuid, user_name, authstring)
     print(clientbound)
@@ -173,6 +173,12 @@ def run(config, email, password, debug, address,authstring):
                                 should_restart = True
                                 print('Relogging...')
                                 break
+                            if message == '!toggle':
+                                should_restart = True
+                                utils.toggle_recording()
+                                #config['recording'] = not config['recording']
+                                print('Relogging and toggling recording...')
+                                break
                             if message == '!stop':
                                 should_restart = False
                                 print('Stopping...')
@@ -204,6 +210,20 @@ def run(config, email, password, debug, address,authstring):
                                 else:
                                     utils.send_chat_message(connection, serverbound,
                                                             '/effect @p minecraft:glowing 1000000 0 true')
+
+                            if message == '!status':
+                                utils.send_chat_message(connection, serverbound, 'hi')
+                                status = 'broken'
+                                if config['recording']:
+                                   status = 'recording'
+                                else:
+                                    status = 'not recording'
+                                utils.send_chat_message(connection, serverbound, 'sarc is currently ' + status) 
+
+
+                            if message == '!help':
+                                #utils.send_chat_message(connection, serverbound, '----- SARC commands -----\nrelog : Relogs the client and starts recording in a new file.\nstop : Disconnects the client and stops recording.\nping : Sends a pong response back for testing.\nfilesize : Sends current filesize of the recording.\ntime : Sends the length of current recording.\ntimeonline : Sends the elapsed time since SARC was connected.\nmove : Teleports the SARC account to the executer.\nglow : Gives the SARC account glowing effect for better visibility.\ntoggle : Relogs the client and toggles recording config field.\nstatus : prints recording status.')
+                                print("soontm")
                 except:
                     pass
 
@@ -303,12 +323,13 @@ def run(config, email, password, debug, address,authstring):
     return should_restart
 
 
-config, email, password, authstring = utils.load_config()
+config, email, uuid, authstring = utils.load_config()
 debug = config['debug_mode']
 address = (config['ip'], int(config['port']))
 while True:
+    config, email, uuid, authstring = utils.load_config()
     try:
-        if not run(config, email, password, debug, address):
+        if not run(config, email, uuid, debug, address, authstring):
             break
         else:
             print('Reconnecting...')

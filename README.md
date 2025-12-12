@@ -1,5 +1,14 @@
 # Stand Alone Replay Client - SARC
 
+## new shit
+ - hacky addition to work with selfhosted auth server
+    - put the uuid of your account in ```uuid``` field
+    - put authstring in ```authstring field```
+    - selfhosted session server implementation + instructions can be found [here](https://github.com/Robitobi01/SelfhostedYggdrasil) by robi ofc
+- new ingame commands:
+    - ```!toggle``` : relogs sarc + toggles the recording field in config
+    - ```!status``` : shows if sarc is currently recording
+
 Written in Python.
 
 

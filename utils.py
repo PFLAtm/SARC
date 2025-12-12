@@ -75,6 +75,7 @@ def gen_version_protocol(version):
 
 
 # Makes request to the Mojang authentication server(Yggdrasil)
+# unused
 def authenticate(username, password):
     response = requests.post('https://authserver.mojang.com/authenticate',
                              data=json.dumps({'username': username, 'password': password,
@@ -84,13 +85,14 @@ def authenticate(username, password):
 
 
 # Requests authentication and returns a dict of the needed information
-def generate_dict(hash, email, password):
+def generate_dict(hash, email, uuid):
     data = dict()
-    response = authenticate(email, password)
-    print(response)
-    access_token = response['accessToken']
-    uuid = response['selectedProfile']['id']
-    user_name = response['selectedProfile']['name']
+    # response = authenticate(email, password)
+    # print(response)
+    # access_token = response['accessToken']
+    access_token = 0
+    # uuid = response['selectedProfile']['id']
+    user_name = "sarc"
     data[hash] = {'access_token': access_token, 'uuid': uuid, 'user_name': user_name, 'uses': 1,
                   'created': int(time.time())}
     return data
@@ -152,13 +154,13 @@ def load_config():
     with open('config.json', 'r') as json_file:
         config = json.load(json_file)
         email = config['username']
-        password = config['password']
-        authString = config['authstring']
-    return config, email, password, authstring
+        uuid = config['uuid']
+        authstring = config['authstring']
+    return config, email, uuid, authstring
 
 
 # Check if valid token exists, else make a new one
-def get_token(email, password):
+def get_token(email, uuid):
     # Access token caching.
     hash = sha1()
     hash.update(str.encode(email))
@@ -178,7 +180,7 @@ def get_token(email, password):
             json_data[hash]['uses'] > 10 or \
             int(time.time()) - json_data[hash]['created'] > 600:
         print('New token generated')
-        json_data = generate_dict(hash, email, password)
+        json_data = generate_dict(hash, email, uuid)
         with open('accessToken.json', 'w') as json_file:
             json.dump(json_data, json_file)
 
@@ -190,7 +192,7 @@ def get_token(email, password):
             json.dump(json_data, json_file)
 
     access_token = json_data[hash]['access_token']
-    uuid = json_data[hash]['uuid']
+    uuid = uuid
     user_name = json_data[hash]['user_name']
     return access_token, uuid, user_name
 
@@ -219,19 +221,22 @@ def generate_protocol_table(address):
             protocol_version = status_data['version']['protocol']
             mc_version = status_data['version']['name']
             break
-    print(status_data)
+    # print(status_data)
+    print('gen protocol table')
     # Generating needed protocol version table
     try:
         with open('protocol.json', 'r') as json_file:
             json_data = json.load(json_file)
     except:
+        print("wtf")
         json_data = ''
-    if json_data == '' or str(protocol_version) not in json_data:
-        with open('protocol.json', 'w') as json_file:
-            packets = gen_version_protocol(protocol_version)
-            json.dump(packets, json_file, indent=4)
-            print('Protocol generated')
-            json_data = packets
+
+    if str(protocol_version) not in json_data:
+        with open('protocol.json', 'r') as json_file:
+            print(f"Error: Protocol data for version {protocol_version} ({mc_version}) is missing from protocol.json.")
+            print("Please ensure your local 'protocol.json' file contains this version.")
+            # Raise an error because we cannot proceed without the packet data
+            raise ValueError(f"Missing protocol data for version {protocol_version}. Check 'protocol.json'.")
     else:
         print('Protocol avaliable')
     clientbound = json_data[str(protocol_version)]['Clientbound']
@@ -287,7 +292,7 @@ def login(address, protocol_version, debug, access_token, uuid, user_name, auth_
                 res = requests.post('https://sessionserver.mojang.com/session/minecraft/join',
                                     data=json.dumps({'accessToken': access_token, 'selectedProfile': uuid,
                                                      'serverId': server_id, 'authString':auth_string}),
-                                    headers={'content-type': 'application/json'})
+                                    headers={'content-type': 'application/json'}, verify='Yggdrasil_selfsigned.crt')
                 print('Client session auth', res.status_code)
 
                 # Send Encryption Response
@@ -363,3 +368,12 @@ def get_metadata_file_format(used_protocol):
         if version <= used_protocol:
             return protocol_versions[version]
     return protocol_versions[393]
+
+def toggle_recording():
+    with open('config.json', 'r') as json_file:
+        config = json.load(json_file)
+
+    config['recording'] = not config['recording']
+
+    with open('config.json', 'w') as json_file:
+        json.dump(config, json_file, indent=4)
